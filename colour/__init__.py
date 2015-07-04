@@ -13,6 +13,7 @@ Subpackages
 -   adaptation: Chromatic adaptation models and transformations.
 -   algebra: Algebra utilities.
 -   appearance: Colour appearance models.
+-   blindness: Colour vision deficiency models.
 -   characterisation: Colour fitting and camera characterisation.
 -   colorimetry: Core objects for colour computations.
 -   constants: *CIE* and *CODATA* constants.
