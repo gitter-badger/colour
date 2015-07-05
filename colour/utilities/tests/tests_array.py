@@ -26,7 +26,8 @@ from colour.utilities import (
     tsplit,
     row_as_diagonal,
     dot_vector,
-    dot_matrix)
+    dot_matrix,
+    shift)
 
 __author__ = 'Colour Developers'
 __copyright__ = 'Copyright (C) 2013 - 2015 - Colour Developers'
@@ -45,7 +46,8 @@ __all__ = ['TestAsNumeric',
            'TestTsplit',
            'TestRowAsDiagonal',
            'TestDotVector',
-           'TestDotMatrix']
+           'TestDotMatrix',
+           'TestShift']
 
 
 class TestAsNumeric(unittest.TestCase):
@@ -434,6 +436,50 @@ class TestDotMatrix(unittest.TestCase):
                        [-1.70994078, 2.57932265, 0.13061813],
                        [-0.00442036, 0.03774904, 0.96667132]]]),
             decimal=7)
+
+
+class TestShift(unittest.TestCase):
+    """
+    Defines :func:`colour.utilities.array.shift` definition unit tests methods.
+    """
+
+    def test_shift(self):
+        """
+        Tests :func:`colour.utilities.array.shift` definition.
+        """
+
+        a = np.arange(6)
+        np.testing.assert_array_equal(
+            shift(a, 3),
+            np.array([0, 0, 0, 0, 1, 2]))
+
+        np.testing.assert_array_equal(
+            shift(a, -3),
+            np.array([3, 4, 5, 0, 0, 0]))
+
+        np.testing.assert_array_equal(
+            shift(a, 0),
+            a)
+
+        a = tstack((a, a, a))
+        np.testing.assert_array_equal(
+            shift(a, 3),
+            np.array([[0, 0, 0],
+                      [0, 0, 0],
+                      [0, 0, 0],
+                      [0, 0, 0],
+                      [1, 1, 1],
+                      [2, 2, 2]]))
+
+        a = np.reshape(a, (2, 3, 3))
+        np.testing.assert_array_equal(
+            shift(a, 1),
+            np.array([[[0, 0, 0],
+                       [0, 0, 0],
+                       [0, 0, 0]],
+                      [[0, 0, 0],
+                       [1, 1, 1],
+                       [2, 2, 2]]]))
 
 
 if __name__ == '__main__':

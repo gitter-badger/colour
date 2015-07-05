@@ -29,7 +29,8 @@ from .array import (
     tsplit,
     row_as_diagonal,
     dot_vector,
-    dot_matrix)
+    dot_matrix,
+    shift)
 from .verbose import message_box, warning
 
 __all__ = ['handle_numpy_errors',
@@ -55,6 +56,7 @@ __all__ += ['as_numeric',
             'tsplit',
             'row_as_diagonal',
             'dot_vector',
-            'dot_matrix']
+            'dot_matrix',
+            'shift']
 __all__ += ['Lookup', 'Structure', 'CaseInsensitiveMapping']
 __all__ += ['message_box', 'warning']
