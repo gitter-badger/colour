@@ -540,4 +540,6 @@ def shift(a, amount):
     else:
         return a
 
-    return np.pad(a, [padding] + [(0, 0)] * (a.ndim - 1), mode='constant')[slc]
+    return np.pad(a,
+                  [padding] + [(0, 0)] * (a.ndim - 1),
+                  mode=str('constant'))[slc]
