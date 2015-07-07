@@ -34,6 +34,7 @@ from colour.utilities import (
     is_numeric,
     is_string,
     is_uniform,
+    shift,
     steps,
     tstack,
     warning)
@@ -494,6 +495,7 @@ class SpectralPowerDistribution(object):
     interpolate
     align
     zeros
+    shift
     normalise
     clone
 
@@ -1777,6 +1779,41 @@ class SpectralPowerDistribution(object):
 
         return self
 
+    def shift(self, amount):
+        """
+        Shifts the spectral power distribution with given amount, blank
+        indexes are zeros filled.
+
+        Parameters
+        ----------
+        amount : int
+            Amount to shift the spectral power distribution.
+
+        Returns
+        -------
+        SpectralPowerDistribution
+            Shifted spectral power distribution.
+
+        Examples
+        --------
+        >>> data = {
+        ...     510: 49.67,
+        ...     520: 69.59,
+        ...     530: 81.73,
+        ...     540: 88.19,
+        ...     550: 86.26,
+        ...     560: 77.18}
+        >>> spd = SpectralPowerDistribution('Spd', data)
+        >>> spd.shift(3)  # doctest: +ELLIPSIS
+        <...SpectralPowerDistribution object at 0x...>
+        >>> spd.values
+        array([  0.  ,   0.  ,   0.  ,  49.67,  69.59,  81.73])
+        """
+
+        self.__data = dict(zip(self.wavelengths, shift(self.values, amount)))
+
+        return self
+
     def normalise(self, factor=1):
         """
         Normalises the spectral power distribution with given normalization
@@ -1888,6 +1925,7 @@ class TriSpectralPowerDistribution(object):
     interpolate
     align
     zeros
+    shift
     normalise
     clone
 
@@ -3597,6 +3635,63 @@ class TriSpectralPowerDistribution(object):
 
         for i in self.__mapping.keys():
             getattr(self, i).zeros(shape)
+
+        return self
+
+    def shift(self, amount):
+        """
+        Shifts the tri-spectral power distribution with given amount, blank
+        indexes are zeros filled.
+
+        Parameters
+        ----------
+        amount : int
+            Amount to shift the tri-spectral power distribution.
+
+        Returns
+        -------
+        TriSpectralPowerDistribution
+            Shifted tri-spectral power distribution.
+
+        Examples
+        --------
+        >>> x_bar = {
+        ...     510: 49.67,
+        ...     520: 69.59,
+        ...     530: 81.73,
+        ...     540: 88.19,
+        ...     550: 89.76,
+        ...     560: 90.28}
+        >>> y_bar = {
+        ...     510: 90.56,
+        ...     520: 87.34,
+        ...     530: 45.76,
+        ...     540: 23.45,
+        ...     550: 15.34,
+        ...     560: 10.11}
+        >>> z_bar = {
+        ...     510: 12.43,
+        ...     520: 23.15,
+        ...     530: 67.98,
+        ...     540: 90.28,
+        ...     550: 91.61,
+        ...     560: 98.24}
+        >>> data = {'x_bar': x_bar, 'y_bar': y_bar, 'z_bar': z_bar}
+        >>> mapping = {'x': 'x_bar', 'y': 'y_bar', 'z': 'z_bar'}
+        >>> tri_spd = TriSpectralPowerDistribution('Tri Spd', data, mapping)
+        >>> tri_spd.shift(3)  # doctest: +ELLIPSIS
+        <...TriSpectralPowerDistribution object at 0x...>
+        >>> tri_spd.values
+        array([[  0.  ,   0.  ,   0.  ],
+               [  0.  ,   0.  ,   0.  ],
+               [  0.  ,   0.  ,   0.  ],
+               [ 49.67,  90.56,  12.43],
+               [ 69.59,  87.34,  23.15],
+               [ 81.73,  45.76,  67.98]])
+        """
+
+        for i in self.__mapping.keys():
+            getattr(self, i).shift(amount)
 
         return self
 
