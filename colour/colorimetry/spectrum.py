@@ -3645,7 +3645,7 @@ class TriSpectralPowerDistribution(object):
 
         Parameters
         ----------
-        amount : int
+        amount : int or array_like
             Amount to shift the tri-spectral power distribution.
 
         Returns
@@ -3679,19 +3679,22 @@ class TriSpectralPowerDistribution(object):
         >>> data = {'x_bar': x_bar, 'y_bar': y_bar, 'z_bar': z_bar}
         >>> mapping = {'x': 'x_bar', 'y': 'y_bar', 'z': 'z_bar'}
         >>> tri_spd = TriSpectralPowerDistribution('Tri Spd', data, mapping)
-        >>> tri_spd.shift(3)  # doctest: +ELLIPSIS
+        >>> tri_spd.shift(np.array([1, 2, 3]))  # doctest: +ELLIPSIS
         <...TriSpectralPowerDistribution object at 0x...>
         >>> tri_spd.values
         array([[  0.  ,   0.  ,   0.  ],
-               [  0.  ,   0.  ,   0.  ],
-               [  0.  ,   0.  ,   0.  ],
-               [ 49.67,  90.56,  12.43],
-               [ 69.59,  87.34,  23.15],
-               [ 81.73,  45.76,  67.98]])
+               [ 49.67,   0.  ,   0.  ],
+               [ 69.59,  90.56,   0.  ],
+               [ 81.73,  87.34,  12.43],
+               [ 88.19,  45.76,  23.15],
+               [ 89.76,  23.45,  67.98]])
         """
 
-        for i in self.__mapping.keys():
-            getattr(self, i).shift(amount)
+        amount = np.asarray(amount)
+        amount = np.resize(amount, 3)
+
+        for i, j in enumerate(sorted(self.__mapping.keys())):
+            getattr(self, j).shift(amount[i])
 
         return self
 

@@ -2998,6 +2998,12 @@ class TestTriSpectralPowerDistribution(unittest.TestCase):
             self.__tri_spd.clone().shift(-5).values,
             shift(self.__tri_spd.clone().values, -5))
 
+        np.testing.assert_array_equal(
+            self.__tri_spd.clone().shift(np.array([1, 2, 3])).values,
+            tstack((shift(self.__tri_spd.x.values, 1),
+                    shift(self.__tri_spd.y.values, 2),
+                    shift(self.__tri_spd.z.values, 3))))
+
     def test_clone(self):
         """
         Tests
