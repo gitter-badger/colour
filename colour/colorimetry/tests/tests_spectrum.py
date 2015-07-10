@@ -2056,6 +2056,7 @@ class TestSpectralPowerDistribution(unittest.TestCase):
                             'interpolate',
                             'align',
                             'zeros',
+                            'shift',
                             'normalise',
                             'clone')
 
@@ -2535,6 +2536,7 @@ class TestTriSpectralPowerDistribution(unittest.TestCase):
                             'interpolate',
                             'align',
                             'zeros',
+                            'shift',
                             'normalise',
                             'clone')
 
