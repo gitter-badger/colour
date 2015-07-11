@@ -3,7 +3,7 @@
 
 """
 Simulation of CVD - Machado (2010)
-=================================
+==================================
 
 Defines Machado (2010) objects for simulation of colour vision deficiency:
 
@@ -34,7 +34,9 @@ from __future__ import division, unicode_literals
 
 import numpy as np
 
+from colour.colorimetry import LMS_CMFS, SpectralShape
 from colour.blindness import CVD_MATRICES_MACHADO_2010
+from colour.utilities import dot_matrix, dot_vector, tsplit, tstack
 
 __author__ = 'Colour Developers'
 __copyright__ = 'Copyright (C) 2013 - 2015 - Colour Developers'
@@ -43,7 +45,122 @@ __maintainer__ = 'Colour Developers'
 __email__ = 'colour-science@googlegroups.com'
 __status__ = 'Production'
 
-__all__ = ['cvd_matrix_Machado2010']
+__all__ = ['cvd_matrix_Machado2010',
+           'anomalous_trichromacy_cmfs']
+
+LMS_TO_WSYBRG_MATRIX = np.array(
+    [[0.600, 0.400, 0.000],
+     [0.240, 0.105, -0.700],
+     [1.200, -1.600, 0.400]])
+"""
+Ingling and Tsou (1977) matrix converting from cones responses to
+opponent-colour space.
+
+LMS_TO_WSYBRG_MATRIX : array_like, (3, 3)
+"""
+
+
+def RGB_to_WSYBRG_matrix(cmfs, primaries):
+    wavelengths = cmfs.wavelengths
+    WSYBRG = dot_vector(LMS_TO_WSYBRG_MATRIX, cmfs.values)
+    WS, YB, RG = tsplit(WSYBRG)
+
+    primaries = primaries.clone().align(cmfs.shape, left=0, right=0)
+    R, G, B = tsplit(primaries.values)
+
+    WS_R = np.trapz(R * WS, wavelengths)
+    WS_G = np.trapz(G * WS, wavelengths)
+    WS_B = np.trapz(B * WS, wavelengths)
+
+    YB_R = np.trapz(R * YB, wavelengths)
+    YB_G = np.trapz(G * YB, wavelengths)
+    YB_B = np.trapz(B * YB, wavelengths)
+
+    RG_R = np.trapz(R * RG, wavelengths)
+    RG_G = np.trapz(G * RG, wavelengths)
+    RG_B = np.trapz(B * RG, wavelengths)
+
+    M_G = np.array([[WS_R, WS_G, WS_B],
+                    [YB_R, YB_G, YB_B],
+                    [RG_R, RG_G, RG_B]])
+
+    PWS = 1 / (WS_R + WS_G + WS_B)
+    PYB = 1 / (YB_R + YB_G + YB_B)
+    PRG = 1 / (RG_R + RG_G + RG_B)
+
+    M_G *= np.array([PWS, PYB, PRG])[:, np.newaxis]
+
+    return M_G
+
+
+def anomalous_trichromacy_cmfs(cmfs, d_LMS):
+    """
+    Shifts given Stockman and Sharpe *LMS* cone fundamentals colour matching
+    functions with given :math:`\Delta_{LMS}` amount in nanometers to simulate
+    anomalous trichromacy.
+
+    Parameters
+    ----------
+    cmfs : LMS_ConeFundamentals
+        Stockman and Sharpe *LMS* cone fundamentals colour matching functions.
+    d_LMS : array_like
+        :math:`\Delta_{LMS}` amount of shift in nanometers as an array of ints.
+
+    Notes
+    -----
+    -   Input :math:`\Delta_{LMS}` amount of shift is in domain [0, 20].
+
+    Returns
+    -------
+    LMS_ConeFundamentals
+        Anomalous trichromacy Stockman and Sharpe *LMS* cone fundamentals
+        colour matching functions.
+
+    Examples
+    --------
+    >>> cmfs = LMS_CMFS.get('Stockman & Sharpe 2 Degree Cone Fundamentals')
+    >>> cmfs[450]
+    array([ 0.0498639,  0.0870524,  0.955393 ])
+    >>> anomalous_trichromacy_cmfs(cmfs, np.array([-15, 0, 0]))[450]
+    array([ 0.0806894,  0.0870524,  0.955393 ])
+    """
+
+    cmfs = cmfs.clone()
+    L, M, S = tsplit(cmfs.values)
+    d_L, d_M, d_S = d_LMS
+
+    wavelengths = cmfs.wavelengths
+    area_L = np.trapz(L, wavelengths)
+    area_M = np.trapz(M, wavelengths)
+
+    alpha = lambda x: (20 - x) / 20
+
+    # Corrected equations as per:
+    # http://www.inf.ufrgs.br/~oliveira/pubs_files/
+    # CVD_Simulation/CVD_Simulation.html#Errata
+    L_a = alpha(d_L) * L + 0.96 * area_L / area_M * (1 - alpha(d_L)) * M
+    M_a = alpha(d_M) * M + 1 / 0.96 * area_M / area_L * (1 - alpha(d_M)) * L
+    S_a = cmfs.s_bar.clone().shift(d_S).values
+
+    LMS_a = tstack((L_a, M_a, S_a))
+    cmfs[wavelengths] = LMS_a
+
+    severity = '{0}, {1}, {2}'.format(d_L, d_M, d_S)
+    cmfs.name = '{0} - {1}'.format(cmfs.name, severity)
+    cmfs.title = '{0} - {1}'.format(cmfs.title, severity)
+
+    return cmfs
+
+
+def anomalous_trichromacy_matrix_Machado2010(cmfs, primaries, d_LMS):
+    if cmfs.shape.steps != 1:
+        cmfs = cmfs.clone().interpolate(SpectralShape(steps=1))
+
+    M_n = RGB_to_WSYBRG_matrix(cmfs, primaries)
+    cmfs_a = anomalous_trichromacy_cmfs(cmfs, d_LMS)
+    M_a = RGB_to_WSYBRG_matrix(cmfs_a, primaries)
+
+    return dot_matrix(np.linalg.inv(M_n), M_a)
 
 
 def cvd_matrix_Machado2010(deficiency, severity):

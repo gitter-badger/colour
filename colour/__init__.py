@@ -58,10 +58,12 @@ from .colorimetry import *  # noqa
 from . import colorimetry
 from .constants import *  # noqa
 from . import constants
-from .difference import *  # noqa
-from . import difference
 from .characterisation import *  # noqa
 from . import characterisation
+from .blindness import *  # noqa
+from . import blindness
+from .difference import *  # noqa
+from . import difference
 from .io import *  # noqa
 from . import io
 from .models import *  # noqa
@@ -94,9 +96,10 @@ __all__ = []
 __all__ += adaptation.__all__
 __all__ += algebra.__all__
 __all__ += appearance.__all__
-__all__ += characterisation.__all__
 __all__ += colorimetry.__all__
 __all__ += constants.__all__
+__all__ += characterisation.__all__
+__all__ += blindness.__all__
 __all__ += difference.__all__
 __all__ += io.__all__
 __all__ += models.__all__
