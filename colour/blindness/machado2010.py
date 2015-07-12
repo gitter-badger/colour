@@ -7,6 +7,8 @@ Simulation of CVD - Machado (2010)
 
 Defines Machado (2010) objects for simulation of colour vision deficiency:
 
+-   :func:`anomalous_trichromacy_cmfs_Machado2010`
+-   :func:`anomalous_trichromacy_matrix_Machado2010`
 -   :func:`cvd_matrix_Machado2010`
 
 See Also
@@ -34,8 +36,8 @@ from __future__ import division, unicode_literals
 
 import numpy as np
 
-from colour.colorimetry import LMS_CMFS, SpectralShape
 from colour.blindness import CVD_MATRICES_MACHADO_2010
+from colour.colorimetry import LMS_CMFS, SpectralShape
 from colour.utilities import dot_matrix, dot_vector, tsplit, tstack
 
 __author__ = 'Colour Developers'
@@ -45,8 +47,11 @@ __maintainer__ = 'Colour Developers'
 __email__ = 'colour-science@googlegroups.com'
 __status__ = 'Production'
 
-__all__ = ['cvd_matrix_Machado2010',
-           'anomalous_trichromacy_cmfs']
+__all__ = ['LMS_TO_WSYBRG_MATRIX',
+           'RGB_to_WSYBRG_matrix',
+           'anomalous_trichromacy_cmfs_Machado2010',
+           'anomalous_trichromacy_matrix_Machado2010',
+           'cvd_matrix_Machado2010']
 
 LMS_TO_WSYBRG_MATRIX = np.array(
     [[0.600, 0.400, 0.000],
@@ -93,41 +98,47 @@ def RGB_to_WSYBRG_matrix(cmfs, primaries):
     return M_G
 
 
-def anomalous_trichromacy_cmfs(cmfs, d_LMS):
+def anomalous_trichromacy_cmfs_Machado2010(cmfs, d_LMS):
     """
-    Shifts given Stockman and Sharpe *LMS* cone fundamentals colour matching
-    functions with given :math:`\Delta_{LMS}` amount in nanometers to simulate
-    anomalous trichromacy.
+    Shifts given *LMS* cone fundamentals colour matching functions with given
+    :math:`\Delta_{LMS}` shift amount in nanometers to simulate anomalous
+    trichromacy.
 
     Parameters
     ----------
     cmfs : LMS_ConeFundamentals
-        Stockman and Sharpe *LMS* cone fundamentals colour matching functions.
+        *LMS* cone fundamentals colour matching functions.
     d_LMS : array_like
-        :math:`\Delta_{LMS}` amount of shift in nanometers as an array of ints.
+        :math:`\Delta_{LMS}` shift amount in nanometers as an array of ints.
 
     Notes
     -----
-    -   Input :math:`\Delta_{LMS}` amount of shift is in domain [0, 20].
+    -   Input *LMS* cone fundamentals colour matching functions steps size is
+        expected to be 1 nanometer, non complying input will be interpolated
+        at 1 nanometer steps size.
+    -   Input :math:`\Delta_{LMS}` shift amount is in domain [0, 20].
 
     Returns
     -------
     LMS_ConeFundamentals
-        Anomalous trichromacy Stockman and Sharpe *LMS* cone fundamentals
-        colour matching functions.
+        Anomalous trichromacy *LMS* cone fundamentals colour matching
+        functions.
 
     Examples
     --------
     >>> cmfs = LMS_CMFS.get('Stockman & Sharpe 2 Degree Cone Fundamentals')
     >>> cmfs[450]
     array([ 0.0498639,  0.0870524,  0.955393 ])
-    >>> anomalous_trichromacy_cmfs(cmfs, np.array([-15, 0, 0]))[450]
-    array([ 0.0806894,  0.0870524,  0.955393 ])
+    >>> anomalous_trichromacy_cmfs_Machado2010(cmfs, np.array([15, 0, 0]))[450]  #noqa  # doctest: +ELLIPSIS
+    array([ 0.0891288...,  0.0870524 ,  0.955393  ])
     """
 
     cmfs = cmfs.clone()
+    if cmfs.shape.steps != 1:
+        cmfs = cmfs.clone().interpolate(SpectralShape(steps=1))
+
     L, M, S = tsplit(cmfs.values)
-    d_L, d_M, d_S = d_LMS
+    d_L, d_M, d_S = np.asarray(d_LMS).astype(np.int_)
 
     wavelengths = cmfs.wavelengths
     area_L = np.trapz(L, wavelengths)
@@ -140,24 +151,63 @@ def anomalous_trichromacy_cmfs(cmfs, d_LMS):
     # CVD_Simulation/CVD_Simulation.html#Errata
     L_a = alpha(d_L) * L + 0.96 * area_L / area_M * (1 - alpha(d_L)) * M
     M_a = alpha(d_M) * M + 1 / 0.96 * area_M / area_L * (1 - alpha(d_M)) * L
+    # TODO: Check inconsistency with ground truth values, d_S domain seems
+    # to be [5, 59] instead of [0, 20].
     S_a = cmfs.s_bar.clone().shift(d_S).values
 
     LMS_a = tstack((L_a, M_a, S_a))
     cmfs[wavelengths] = LMS_a
 
     severity = '{0}, {1}, {2}'.format(d_L, d_M, d_S)
-    cmfs.name = '{0} - {1}'.format(cmfs.name, severity)
-    cmfs.title = '{0} - {1}'.format(cmfs.title, severity)
+    template = '{0} - Anomalous trichromacy ({1})'
+    cmfs.name = template.format(cmfs.name, severity)
+    cmfs.title = template.format(cmfs.title, severity)
 
     return cmfs
 
 
 def anomalous_trichromacy_matrix_Machado2010(cmfs, primaries, d_LMS):
+    """
+    Computes Machado (2010) *CVD* matrix for given *LMS* cone fundamentals
+    colour matching functions and display primaries tri-spectral power
+    distributions with given :math:`\Delta_{LMS}` shift amount in nanometers to
+    simulate anomalous trichromacy.
+
+    Parameters
+    ----------
+    cmfs : LMS_ConeFundamentals
+        *LMS* cone fundamentals colour matching functions.
+    primaries : RGB_DisplayPrimaries
+        *RGB* display primaries tri-spectral power distributions.
+    d_LMS : array_like
+        :math:`\Delta_{LMS}` shift amount in nanometers as an array of ints.
+
+    Notes
+    -----
+    -   Input *LMS* cone fundamentals colour matching functions steps size is
+        expected to be 1 nanometer, non complying input will be interpolated
+        at 1 nanometer steps size.
+    -   Input :math:`\Delta_{LMS}` shift amount is in domain [0, 20].
+
+    Returns
+    -------
+    ndarray
+        Anomalous trichromacy matrix.
+
+    Examples
+    --------
+    >>> cmfs = LMS_CMFS.get('Stockman & Sharpe 2 Degree Cone Fundamentals')
+    >>> cmfs[450]
+    array([ 0.0498639,  0.0870524,  0.955393 ])
+    >>> anomalous_trichromacy_cmfs_Machado2010(cmfs, np.array([15, 0, 0]))[450]  #noqa  # doctest: +ELLIPSIS
+    array([ 0.0891288...,  0.0870524 ,  0.955393  ])
+    """
+
     if cmfs.shape.steps != 1:
         cmfs = cmfs.clone().interpolate(SpectralShape(steps=1))
 
     M_n = RGB_to_WSYBRG_matrix(cmfs, primaries)
-    cmfs_a = anomalous_trichromacy_cmfs(cmfs, d_LMS)
+    cmfs_a = anomalous_trichromacy_cmfs_Machado2010(cmfs, d_LMS)
     M_a = RGB_to_WSYBRG_matrix(cmfs_a, primaries)
 
     return dot_matrix(np.linalg.inv(M_n), M_a)
@@ -165,7 +215,8 @@ def anomalous_trichromacy_matrix_Machado2010(cmfs, primaries, d_LMS):
 
 def cvd_matrix_Machado2010(deficiency, severity):
     """
-    Computes Machado (2010) *CVD* matrix for given deficiency and severity.
+    Computes Machado (2010) *CVD* matrix for given deficiency and severity
+    using the pre-computed matrices dataset.
 
     Parameters
     ----------
