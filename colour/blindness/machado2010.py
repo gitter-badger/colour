@@ -37,7 +37,7 @@ from __future__ import division, unicode_literals
 import numpy as np
 
 from colour.blindness import CVD_MATRICES_MACHADO_2010
-from colour.colorimetry import LMS_CMFS, SpectralShape
+from colour.colorimetry import SpectralShape
 from colour.utilities import dot_matrix, dot_vector, tsplit, tstack
 
 __author__ = 'Colour Developers'
@@ -126,10 +126,11 @@ def anomalous_trichromacy_cmfs_Machado2010(cmfs, d_LMS):
 
     Examples
     --------
+    >>> from colour import LMS_CMFS
     >>> cmfs = LMS_CMFS.get('Stockman & Sharpe 2 Degree Cone Fundamentals')
     >>> cmfs[450]
     array([ 0.0498639,  0.0870524,  0.955393 ])
-    >>> anomalous_trichromacy_cmfs_Machado2010(cmfs, np.array([15, 0, 0]))[450]  #noqa  # doctest: +ELLIPSIS
+    >>> anomalous_trichromacy_cmfs_Machado2010(cmfs, np.array([15, 0, 0]))[450]  # noqa  # doctest: +ELLIPSIS
     array([ 0.0891288...,  0.0870524 ,  0.955393  ])
     """
 
@@ -196,10 +197,11 @@ def anomalous_trichromacy_matrix_Machado2010(cmfs, primaries, d_LMS):
 
     Examples
     --------
+    >>> from colour import LMS_CMFS
     >>> cmfs = LMS_CMFS.get('Stockman & Sharpe 2 Degree Cone Fundamentals')
     >>> cmfs[450]
     array([ 0.0498639,  0.0870524,  0.955393 ])
-    >>> anomalous_trichromacy_cmfs_Machado2010(cmfs, np.array([15, 0, 0]))[450]  #noqa  # doctest: +ELLIPSIS
+    >>> anomalous_trichromacy_cmfs_Machado2010(cmfs, np.array([15, 0, 0]))[450]  # noqa  # doctest: +ELLIPSIS
     array([ 0.0891288...,  0.0870524 ,  0.955393  ])
     """
 

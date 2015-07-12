@@ -46,7 +46,7 @@ class TestAnomalousTrichromacyCmfsMachado2010(unittest.TestCase):
     def test_anomalous_trichromacy_cmfs_Machado2010(self):
         """
         Tests
-        :func:`colour.blindness.machado2010.anomalous_trichromacy_cmfs_Machado2010`  #noqa
+        :func:`colour.blindness.machado2010.anomalous_trichromacy_cmfs_Machado2010`  # noqa
         definition.
         """
 
@@ -111,7 +111,7 @@ class TestAnomalousTrichromacyMatrixMachado2010(unittest.TestCase):
     def test_anomalous_trichromacy_matrix_Machado2010(self):
         """
         Tests
-        :func:`colour.blindness.machado2010.anomalous_trichromacy_matrix_Machado2010`  #noqa
+        :func:`colour.blindness.machado2010.anomalous_trichromacy_matrix_Machado2010`  # noqa
         definition.
         """
 
