@@ -42,6 +42,7 @@ from .colorimetry import (
     multi_lightness_function_plot,
     blackbody_spectral_radiance_plot,
     blackbody_colours_plot)
+from .blindness import cvd_simulation_Machado2010_plot
 from .characterisation import colour_checker_plot
 from .diagrams import (
     CIE_1931_chromaticity_diagram_plot,
@@ -115,6 +116,7 @@ __all__ += [
     'multi_lightness_function_plot',
     'blackbody_spectral_radiance_plot',
     'blackbody_colours_plot']
+__all__ += ['cvd_simulation_Machado2010_plot']
 __all__ += [
     'colour_checker_plot']
 __all__ += [

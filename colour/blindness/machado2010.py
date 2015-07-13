@@ -197,12 +197,14 @@ def anomalous_trichromacy_matrix_Machado2010(cmfs, primaries, d_LMS):
 
     Examples
     --------
-    >>> from colour import LMS_CMFS
+    >>> from colour import LMS_CMFS, DISPLAYS_RGB_PRIMARIES
     >>> cmfs = LMS_CMFS.get('Stockman & Sharpe 2 Degree Cone Fundamentals')
-    >>> cmfs[450]
-    array([ 0.0498639,  0.0870524,  0.955393 ])
-    >>> anomalous_trichromacy_cmfs_Machado2010(cmfs, np.array([15, 0, 0]))[450]  # noqa  # doctest: +ELLIPSIS
-    array([ 0.0891288...,  0.0870524 ,  0.955393  ])
+    >>> d_LMS = np.array([15, 0, 0])
+    >>> primaries = DISPLAYS_RGB_PRIMARIES.get('Apple Studio Display')
+    >>> anomalous_trichromacy_matrix_Machado2010(cmfs, primaries, d_LMS)  # noqa  # doctest: +ELLIPSIS
+    array([[-0.2777465...,  2.6515008..., -1.3737543...],
+           [ 0.2718936...,  0.2004786...,  0.5276276...],
+           [ 0.0064404...,  0.2592157...,  0.7343437...]])
     """
 
     if cmfs.shape.steps != 1:
